@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    
+    h1 {
+      color: #1a73e8;
+      font-size: 20px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #1a73e8;
+      padding-bottom: 10px;
+    }
+    
+    h2 {
+      color: #333;
+      font-size: 16px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      background-color: #f1f3f4;
+      padding: 8px;
+      border-left: 4px solid #1a73e8;
+    }
+    
+    .section {
+      margin-bottom: 20px;
+    }
+    
+    .required {
+      color: #d93025;
+      font-weight: bold;
+    }
+    
+    ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    
+    li {
+      margin-bottom: 8px;
+    }
+    
+    .tip {
+      background-color: #e8f0fe;
+      border-left: 4px solid #1a73e8;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    
+    .code {
+      background-color: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+    }
+    
+    .step {
+      background-color: #fff;
+      border: 1px solid #dadce0;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 4px;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background-color: #1a73e8;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      margin-right: 8px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>📄 WEP Combiner - Setup Instructions</h1>
+  
+  <div class="section">
+    <h2>Config Sheet - <span class="required">Required Settings</span></h2>
+    
+    <div class="step">
+      <strong>1. Output Folder ID</strong>
+      <ul>
+        <li>The Google Drive folder ID where the final merged PDF will be saved</li>
+        <li>Find this in the folder URL: <span class="code">drive.google.com/drive/folders/[FOLDER_ID]</span></li>
+        <li>Copy just the folder ID portion from the URL</li>
+      </ul>
+    </div>
+    
+    <div class="step">
+      <strong>2. PDF Name</strong>
+      <ul>
+        <li>The name for your final merged PDF file</li>
+        <li>Example: <span class="code">2024_WEP_Combined</span></li>
+        <li>Do not include the .pdf extension - it will be added automatically</li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>DocIDs Sheet - Document List</h2>
+    
+    <ul>
+      <li><strong>Column A:</strong> Student Name (or document description)</li>
+      <li><strong>Column B:</strong> Google Doc ID
+        <ul>
+          <li>Find this in the doc URL: <span class="code">docs.google.com/document/d/[DOC_ID]/edit</span></li>
+          <li>Copy just the document ID portion from the URL</li>
+        </ul>
+      </li>
+      <li><strong>Column C:</strong> Status (automatically filled during processing)</li>
+      <li><strong>Column D:</strong> Error Message (if any errors occur)</li>
+    </ul>
+  </div>
+  
+  <div class="section">
+    <h2>How to Use</h2>
+    
+    <div class="step">
+      <span class="step-number">1</span>
+      <strong>Fill in the Config sheet</strong> with Output Folder ID and PDF Name
+    </div>
+    
+    <div class="step">
+      <span class="step-number">2</span>
+      <strong>Add all document IDs</strong> to the DocIDs sheet (one per row)
+    </div>
+    
+    <div class="step">
+      <span class="step-number">3</span>
+      <strong>Click "Create & Merge PDFs"</strong> from the WEP Combiner menu
+    </div>
+    
+    <div class="step">
+      <span class="step-number">4</span>
+      <strong>Wait for completion</strong> - Progress will be shown in the Config sheet and DocIDs sheet
+    </div>
+    
+    <div class="step">
+      <span class="step-number">5</span>
+      <strong>Download your PDF</strong> - Link will appear in Config sheet when complete
+    </div>
+  </div>
+  
+  <div class="section">
+    <h2>Tips & Notes</h2>
+    
+    <div class="tip">
+      💡 <strong>Use "Reset Status"</strong> from the menu to clear all results before starting a new run
+    </div>
+    
+    <div class="tip">
+      📊 <strong>Check detailed progress</strong> in the Executions log: Extensions → Apps Script → Executions
+    </div>
+    
+    <div class="tip">
+      ⚡ <strong>Fast processing!</strong> All documents are processed in memory - no temporary files are created
+    </div>
+    
+    <div class="tip">
+      ✅ <strong>Success indicators:</strong> Green checkmarks (✓) appear in the DocIDs sheet for each successfully processed document
+    </div>
+  </div>
+</body>
+</html>

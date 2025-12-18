@@ -37,6 +37,7 @@ async function createAndMergePDFs() {
     updateConfigValue('Process Status', 'RUNNING');
     updateConfigValue('Total Documents', docData.length);
     updateConfigValue('Start Time', new Date().toString());
+    SpreadsheetApp.flush()
     
     // Step 1: Convert each Google Doc to PDF (in memory)
     const pdfBlobs = [];
@@ -151,4 +152,15 @@ function onOpen() {
     .addSeparator()
     .addItem('ℹ️ Help', 'showHelp')
     .addToUi();
+}
+
+/**
+ * Displays help instructions for using the WEP Combiner
+ * Uses HTML dialog to avoid the "Working..." indicator
+ */
+function showHelp() {
+  const html = HtmlService.createHtmlOutputFromFile('Help')
+    .setWidth(600)
+    .setHeight(700);
+  SpreadsheetApp.getUi().showModalDialog(html, 'WEP Combiner - Help');
 }

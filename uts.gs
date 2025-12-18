@@ -179,6 +179,7 @@ function resetProcessStatus() {
   // Reset Config sheet process status fields
   updateConfigValue('Process Status', 'NOT STARTED');
   updateConfigValue('Errors Count', 0);
+  updateConfigValue('Total Documents', 0)
   updateConfigValue('Start Time', '');
   updateConfigValue('Completion Time', '');
   updateConfigValue('Error Message', '');
@@ -187,7 +188,7 @@ function resetProcessStatus() {
   
   Logger.log('Process status reset');
   
-  SpreadsheetApp.getUi().alert('Status Reset', 
-    'All status fields have been cleared and reset.', 
-    SpreadsheetApp.getUi().ButtonSet.OK);
+  // SpreadsheetApp.getUi().alert('Status Reset', 
+  //   'All status fields have been cleared and reset.', 
+  //   SpreadsheetApp.getUi().ButtonSet.OK);
 }
