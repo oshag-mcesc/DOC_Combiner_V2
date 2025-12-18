@@ -4,8 +4,10 @@
 
 /**
  * Loads configuration from the Config sheet
+ * Converts Setting/Value pairs into a configuration object
  * 
- * @returns {Object} Configuration object with all settings
+ * @returns {Object} Configuration object with all settings in camelCase
+ * @throws {Error} If Config sheet is not found
  */
 function loadConfig() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -18,22 +20,18 @@ function loadConfig() {
   const data = configSheet.getDataRange().getValues();
   const config = {};
   
-  // Parse key-value pairs (assumes Setting in col A, Value in col B)
+  // Parse key-value pairs (Setting in column A, Value in column B)
   for (let i = 1; i < data.length; i++) { // Skip header row
     const setting = data[i][0];
     const value = data[i][1];
     
     if (setting && setting !== '') {
       // Convert setting name to camelCase for object property
+      // Example: "Output Folder ID" → "outputFolderId"
       const key = setting.replace(/\s+/g, '');
       const camelKey = key.charAt(0).toLowerCase() + key.slice(1);
       config[camelKey] = value;
     }
-  }
-  
-  // Set default batch size if not specified
-  if (!config.batchSize) {
-    config.batchSize = DEFAULT_BATCH_SIZE;
   }
   
   return config;
@@ -41,8 +39,10 @@ function loadConfig() {
 
 /**
  * Loads document data from the DocIDs sheet
+ * Extracts student names and document IDs
  * 
- * @returns {Array<Object>} Array of document data objects
+ * @returns {Array<Object>} Array of {studentName, docId} objects
+ * @throws {Error} If DocIDs sheet is not found
  */
 function loadDocumentData() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -74,6 +74,7 @@ function loadDocumentData() {
 
 /**
  * Updates a single value in the Config sheet
+ * If the setting doesn't exist, it will be added to the end
  * 
  * @param {string} setting - The setting name to update
  * @param {*} value - The new value
@@ -101,24 +102,23 @@ function updateConfigValue(setting, value) {
 
 /**
  * Updates the status of a document in the DocIDs sheet
+ * Applies color coding: green for success, red for errors
  * 
- * @param {number} rowNumber - The row number (1-indexed)
+ * @param {number} rowNumber - The row number (1-indexed, includes header)
  * @param {string} status - Status text (e.g., '✓', 'ERROR')
  * @param {string} errorMessage - Error message if applicable
- * @param {number} batchNumber - The batch number that processed this doc
  */
-function updateDocumentStatus(rowNumber, status, errorMessage, batchNumber) {
+function updateDocumentStatus(rowNumber, status, errorMessage) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const docSheet = ss.getSheetByName('DocIDs');
   
   if (!docSheet) return;
   
-  // Columns: C = Status, D = Error Message, E = Batch #
+  // Update Status column (C) and Error Message column (D)
   docSheet.getRange(rowNumber, 3).setValue(status);
   docSheet.getRange(rowNumber, 4).setValue(errorMessage);
-  docSheet.getRange(rowNumber, 5).setValue(batchNumber);
   
-  // Apply color coding
+  // Apply color coding for visual feedback
   if (status === '✓') {
     docSheet.getRange(rowNumber, 3).setBackground('#d9ead3'); // Light green
   } else if (status === 'ERROR') {
@@ -127,14 +127,15 @@ function updateDocumentStatus(rowNumber, status, errorMessage, batchNumber) {
 }
 
 /**
- * Validates that all required configuration values are present
+ * Validates that all required configuration values are present and valid
  * 
  * @param {Object} config - Configuration object
  * @returns {boolean} True if valid, false otherwise
  */
 function validateConfig(config) {
-  const required = ['outputFolderId', 'tempFolderId', 'pdfName'];
+  const required = ['outputFolderId', 'pdfName'];
   
+  // Check that all required fields are present and not empty
   for (const field of required) {
     if (!config[field] || config[field] === '') {
       Logger.log(`Missing required config field: ${field}`);
@@ -142,12 +143,11 @@ function validateConfig(config) {
     }
   }
   
-  // Validate folder IDs exist
+  // Validate that output folder ID exists and is accessible
   try {
     DriveApp.getFolderById(config.outputFolderId);
-    DriveApp.getFolderById(config.tempFolderId);
   } catch (error) {
-    Logger.log('Invalid folder ID: ' + error.toString());
+    Logger.log('Invalid output folder ID: ' + error.toString());
     return false;
   }
   
@@ -160,74 +160,35 @@ function validateConfig(config) {
 
 /**
  * Resets all status fields in preparation for a new run
+ * Clears document statuses and resets Config sheet tracking values
  */
 function resetProcessStatus() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   
-  // Clear DocIDs sheet status columns
+  // Clear DocIDs sheet status columns (Status, Error Message)
   const docSheet = ss.getSheetByName('DocIDs');
   if (docSheet) {
     const lastRow = docSheet.getLastRow();
     if (lastRow > 1) {
-      // Clear Status, Error Message, and Batch # columns
-      docSheet.getRange(2, 3, lastRow - 1, 3).clearContent();
-      docSheet.getRange(2, 3, lastRow - 1, 3).setBackground(null);
+      // Clear columns C and D (Status and Error Message)
+      docSheet.getRange(2, 3, lastRow - 1, 2).clearContent();
+      docSheet.getRange(2, 3, lastRow - 1, 2).setBackground(null);
     }
   }
   
   // Reset Config sheet process status fields
   updateConfigValue('Process Status', 'NOT STARTED');
-  updateConfigValue('Current Batch', 0);
-  updateConfigValue('Total Batches', 0);
   updateConfigValue('Errors Count', 0);
+  updateConfigValue('Total Documents', 0)
   updateConfigValue('Start Time', '');
   updateConfigValue('Completion Time', '');
-  updateConfigValue('Last Updated', '');
   updateConfigValue('Error Message', '');
   updateConfigValue('Final PDF URL', '');
   updateConfigValue('Final PDF ID', '');
   
   Logger.log('Process status reset');
-}
-
-/**
- * Clears all time-based triggers created by this script
- * Useful for stopping a running process or cleaning up
- */
-function clearAllTriggers() {
-  const triggers = ScriptApp.getProjectTriggers();
-  let count = 0;
   
-  triggers.forEach(trigger => {
-    // Only delete triggers created by this script (time-based triggers)
-    if (trigger.getEventType() === ScriptApp.EventType.CLOCK) {
-      ScriptApp.deleteTrigger(trigger);
-      count++;
-    }
-  });
-  
-  Logger.log(`Cleared ${count} triggers`);
-  
-  if (count > 0) {
-    SpreadsheetApp.getUi().alert('Triggers Cleared', 
-      `Removed ${count} scheduled triggers.`, 
-      SpreadsheetApp.getUi().ButtonSet.OK);
-  }
-}
-
-/**
- * Deletes the trigger that called the current function
- * Used to clean up after scheduled batch processing
- */
-function deleteCurrentTrigger() {
-  const triggers = ScriptApp.getProjectTriggers();
-  
-  // Delete the first time-based trigger (which should be the one that just fired)
-  for (const trigger of triggers) {
-    if (trigger.getEventType() === ScriptApp.EventType.CLOCK) {
-      ScriptApp.deleteTrigger(trigger);
-      Logger.log('Deleted current trigger');
-      break;
-    }
-  }
+  // SpreadsheetApp.getUi().alert('Status Reset', 
+  //   'All status fields have been cleared and reset.', 
+  //   SpreadsheetApp.getUi().ButtonSet.OK);
 }
